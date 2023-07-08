@@ -65,7 +65,7 @@ async fn upload(mut payload: Multipart) -> impl Responder {
 ///
 /// An `HttpResponse` which can be `Ok` with the file's content as the body 
 /// or `NotFound` if the file doesn't exist.
-#[get("/{filename}")]
+#[get("/download/{filename}")]
 async fn download(filename: web::Path<String>) -> impl Responder {
     let filename = sanitize(filename.into_inner());
     let filepath = format!("./{}", filename);
@@ -92,7 +92,7 @@ async fn download(filename: web::Path<String>) -> impl Responder {
 /// An `HttpResponse` which can be `Ok` with a `Stream` of the file's content as the body,
 /// `InternalServerError` if there was a problem reading the file,
 /// or `NotFound` if the file doesn't exist.
-#[get("/{filename:.*}")]
+#[get("/download-chunked/{filename:.*}")]
 async fn chunked_download(path: web::Path<String>) -> impl Responder {
     let filename = sanitize(path.into_inner());
     let file_path = PathBuf::from("./").join(filename);
@@ -149,19 +149,13 @@ async fn delete(filename: web::Path<String>) -> impl Responder {
 /// the function will return `Ok(())`.
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Get base port from command-line argument, or default to 3000.
     let base_port = env::args().nth(1).map(|s| s.parse::<u16>().unwrap()).unwrap_or(3000);
 
-    // Set up bind addresses for both servers.
-    let bind_address1 = format!("0.0.0.0:{}", base_port);
-    println!("Listening on http://{}", bind_address1);
-    let bind_address2 = format!("0.0.0.0:{}", base_port + 1);
-    println!("Listening on http://{}", bind_address2);
+    let bind_address = format!("0.0.0.0:{}", base_port);
+    println!("Listening on http://{}", bind_address);
 
-    // Set up a one-shot channel for exiting the servers.
     let (tx, rx) = tokio::sync::oneshot::channel();
 
-    // Start a task that waits for the ENTER key to be pressed.
     tokio::spawn(async move {
         let mut reader = BufReader::new(io::stdin());
         let mut buffer = String::new();
@@ -169,30 +163,18 @@ async fn main() -> std::io::Result<()> {
         tx.send(()).unwrap();
     });
 
-    // Start the first server with the flat download handler.
-    let server1 = HttpServer::new(|| {
+    let server = HttpServer::new(|| {
         App::new()
             .service(upload)
             .service(download) // Flat download
-            .service(delete)
-    })
-    .bind(&bind_address1)?
-    .run();
-
-    // Start the second server with the chunked download handler.
-    let server2 = HttpServer::new(|| {
-        App::new()
-            .service(upload)
             .service(chunked_download) // Chunked download
             .service(delete)
     })
-    .bind(&bind_address2)?
+    .bind(&bind_address)?
     .run();
 
-    // Wait for either server to finish, or for the ENTER key to be pressed.
     tokio::select! {
-        _ = server1 => {},
-        _ = server2 => {},
+        _ = server => {},
         _ = rx => {
             println!("ENTER pressed, shutting down");
         }
