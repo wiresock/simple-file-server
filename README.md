@@ -4,7 +4,7 @@ Simple File Server is a minimalist, yet powerful, file server written in Rust. I
 
 ## Features
 - **File Upload**: Easily upload files to the server.
-- **File Download**: Download stored files using a simple API.
+- **File Download**: Download stored files using a simple API. The server supports both direct and chunked downloads.
 - **File Deletion**: Delete existing files from the server.
 - **Simple Control**: Use the command line to control the server, including defining the server port.
 
@@ -15,7 +15,7 @@ First, ensure that you have Rust installed on your system. If not, follow the in
 Then, you can clone this repository:
 
 ```sh
-git clone https://github.com/username/simple-file-server.git
+git clone https://github.com/wiresock/simple-file-server.git
 cd simple-file-server
 ```
 *Note: Replace 'username' with your actual GitHub username.*
@@ -36,7 +36,8 @@ In this example, the server would listen on port 8080.
 Once the server is running, you can use the following endpoints:
 
 - `POST /upload`: Upload a file to the server.
-- `GET /{filename}`: Download a specific file from the server.
+- `GET /download/{filename}`: Download a specific file from the server as a single blob. This method may not be efficient for large files.
+- `GET /download-chunked/{filename}`: Download a specific file from the server in chunks. This method provides better performance when dealing with large files.
 - `DELETE /{filename}`: Delete a specific file from the server.
 
 Press `ENTER` to stop the server.
