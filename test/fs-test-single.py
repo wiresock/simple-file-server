@@ -30,9 +30,17 @@ def upload_file(filename, server_url):
         response = session.post(url, files=files)
     return response.status_code
 
-def download_file(filename, server_url):
-    url = f'{server_url}/{filename}'
-    response = session.get(url)
+def download_file_chunked(filename, server_url):
+    download_path = f'{server_url}/download-chunked/{filename}'
+    response = session.get(download_path)
+    if response.status_code == 200:
+        with open(filename, 'wb') as file:
+            file.write(response.content)
+    return response.status_code
+
+def download_file_regular(filename, server_url):
+    download_path = f'{server_url}/download/{filename}'
+    response = session.get(download_path)
     if response.status_code == 200:
         with open(filename, 'wb') as file:
             file.write(response.content)
@@ -44,18 +52,26 @@ def delete_file(filename, server_url):
     return response.status_code
 
 def main():
-    if len(sys.argv) < 4:
-        print('Please provide a filename, file size, and server URL as command line arguments')
+    if len(sys.argv) < 5:
+        print('Please provide a command (download-chunked or download), filename, file size, and server URL as command line arguments')
         return
 
-    filename = sys.argv[1]
-    size = int(sys.argv[2])
-    server_url = sys.argv[3]
+    command = sys.argv[1]
+    filename = sys.argv[2]
+    size = int(sys.argv[3])
+    server_url = sys.argv[4]
 
     # Try to download the file
     start_time = time.time()
-    download_status = download_file(filename, server_url)
+    if command == 'download-chunked':
+        download_status = download_file_chunked(filename, server_url)
+    elif command == 'download':
+        download_status = download_file_regular(filename, server_url)
+    else:
+        print('Invalid command. Please use "download-chunked" or "download".')
+        return
     end_time = time.time()
+
     if download_status == 200:
         print(f'File downloaded: {filename}, Status: {download_status}, Time taken: {end_time - start_time:.2f}s')
     else:
@@ -71,10 +87,13 @@ def main():
         upload_status = upload_file(filename, server_url)
         end_time = time.time()
         print(f'File uploaded: {filename}, Status: {upload_status}, Time taken: {end_time - start_time:.2f}s')
-        
+
         # Download the file
         start_time = time.time()
-        download_status = download_file(filename, server_url)
+        if command == 'download-chunked':
+            download_status = download_file_chunked(filename, server_url)
+        elif command == 'download':
+            download_status = download_file_regular(filename, server_url)
         end_time = time.time()
         print(f'File downloaded: {filename}, Status: {download_status}, Time taken: {end_time - start_time:.2f}s')
 
@@ -86,4 +105,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
