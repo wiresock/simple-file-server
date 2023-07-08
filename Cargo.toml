@@ -7,8 +7,10 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4.3.1"
+actix-files = "0.6.2"
 actix-multipart = "0.6.0"
 futures = "0.3"
 tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7.7", features = ["io"] }
 sanitize-filename = "0.4.0"
 
