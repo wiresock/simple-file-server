@@ -3,10 +3,16 @@ import requests
 import random
 import string
 import time
+import os
 
 session = requests.Session()
 
 def generate_random_text_file(filename, size):
+    # Check if the file exists and if it has the correct size
+    if os.path.exists(filename) and os.path.getsize(filename) == size:
+        print(f'File: {filename} already exists with the correct size of {size} bytes.')
+        return
+
     block_size = 1024
     block = ''.join(random.choices(string.ascii_letters + string.digits, k=block_size))
 
