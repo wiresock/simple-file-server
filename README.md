@@ -18,8 +18,6 @@ Then, you can clone this repository:
 git clone https://github.com/wiresock/simple-file-server.git
 cd simple-file-server
 ```
-*Note: Replace 'username' with your actual GitHub username.*
-
 Now, you can compile and run the server:
 
 ```sh
