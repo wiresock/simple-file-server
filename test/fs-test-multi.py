@@ -25,12 +25,12 @@ def upload_file(filename, server_url):
     url = f'{server_url}/upload'
     with open(filename, 'rb') as f:
         files = {'file': f}
-        response = requests.post(url, files=files)
+        response = requests.post(url, files=files, verify=False)
     return response.status_code
 
 def download_file_chunked(filename, server_url):
     download_path = f'{server_url}/download-chunked/{filename}'
-    response = requests.get(download_path)
+    response = requests.get(download_path, verify=False)
     if response.status_code == 200:
         with open(filename, 'wb') as file:
             file.write(response.content)
@@ -38,7 +38,7 @@ def download_file_chunked(filename, server_url):
 
 def download_file_regular(filename, server_url):
     download_path = f'{server_url}/download/{filename}'
-    response = requests.get(download_path)
+    response = requests.get(download_path, verify=False)
     if response.status_code == 200:
         with open(filename, 'wb') as file:
             file.write(response.content)
@@ -46,7 +46,7 @@ def download_file_regular(filename, server_url):
 
 def delete_file(filename, server_url):
     url = f'{server_url}/{filename}'
-    response = requests.delete(url)
+    response = requests.delete(url, verify=False)
     return response.status_code
 
 def main():
